@@ -58,8 +58,36 @@ namespace multiverso
                 data_block->GetSentence(i, sentence, sentence_length,
                     word_count_deta, next_random);
 
-                this->Train(sentence, sentence_length,
-                    next_random, hidden_act, hidden_err);
+				if (sentence_length == 0)
+					continue;
+
+				for (int sentence_position = 0; sentence_position < sentence_length; ++sentence_position)
+				{
+					if (sentence[sentence_position] == -1) continue;
+					next_random = next_random * (uint64)25214903917 + 11;
+					int off = next_random % option_->window_size;
+					int feat_size = 0;
+					for (int i = off; i < option_->window_size * 2 + 1 - off; ++i)
+					if (i != option_->window_size)
+					{
+						int c = sentence_position - option_->window_size + i;
+						if (c < 0 || c >= sentence_length || sentence[c] == -1)
+							continue;
+
+						feat[feat_size++] = sentence[c];
+						if (!option_->cbow) //train Skip-gram
+						{
+							TrainParse(feat + feat_size - 1, 1, sentence[sentence_position],
+								next_random, hidden_act, hidden_err);
+						}
+					}
+
+					if (option_->cbow) 	//train cbow
+					{
+						TrainParse(feat, feat_size, sentence[sentence_position],
+							next_random, hidden_act, hidden_err);
+					}
+				}
 
                 word_count += word_count_deta;
             }
@@ -79,37 +107,7 @@ namespace multiverso
         void WordEmbedding::Train(int* sentence, int sentence_length,
             uint64 next_random, real* hidden_act, real* hidden_err)
         {
-			if (sentence_length == 0)
-				return;
-
-			int feat[kMaxSentenceLength + 1];
-			for (int sentence_position = 0; sentence_position < sentence_length; ++sentence_position)
-			{
-				if (sentence[sentence_position] == -1) continue;
-				next_random = sampler_->GetNextRandom(next_random);
-				int off = next_random % option_->window_size;
-				int feat_size = 0;
-				for (int i = off; i < option_->window_size * 2 + 1 - off; ++i)
-				if (i != option_->window_size)
-				{
-					int c = sentence_position - option_->window_size + i;
-					if (c < 0 || c >= sentence_length || sentence[c] == -1)
-						continue;
-
-					feat[feat_size++] = sentence[c];
-					if (!option_->cbow) //train Skip-gram
-					{
-						TrainParse(feat + feat_size - 1, 1, sentence[sentence_position],
-							next_random, hidden_act, hidden_err);
-					}
-				}
-
-				if (option_->cbow) 	//train cbow
-				{
-					TrainParse(feat, feat_size, sentence[sentence_position],
-						next_random, hidden_act, hidden_err);
-				}
-			}
+			
         }
 
 		void WordEmbedding::FeedForward(int* feat, int feat_cnt, real* hidden_act)
@@ -151,7 +149,7 @@ namespace multiverso
 					hidden_act, hidden_err);
 				for (int d = 0; d < option_->negative_num; d++)
 				{
-					next_random = sampler_->GetNextRandom(next_random);
+					next_random = next_random * (uint64)25214903917 + 11;
 					int target = sampler_->NegativeSampling(next_random);
 					if (target == word_idx) continue;
 					BPOutputLayer(0, target, weight_EO_[target],

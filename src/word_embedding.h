@@ -85,6 +85,7 @@ namespace multiverso
 			real weight_EO_[218316][300];
             real** sum_gradient2_IE_;
             real** sum_gradient2_EO_;
+			int feat[kMaxSentenceLength + 1];
 
             typedef void(WordEmbedding::*FunctionType)(std::vector<int>& input_nodes,
                 std::vector<std::pair<int, int> >& output_nodes,
