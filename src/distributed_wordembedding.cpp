@@ -244,17 +244,35 @@ namespace multiverso
 
         void Distributed_wordembedding::TrainNeuralNetwork()
         {
+			//The barrier for trainers
+			multiverso::Barrier* barrier =
+				new multiverso::Barrier(option_->thread_cnt);
+
+			MemoryManager* memory_mamanger =
+				new MemoryManager(option_->embeding_size);
+			WordEmbedding* WordEmbeddings[2] =
+			{ new WordEmbedding(option_, huffman_encoder_,
+			sampler_, dictionary_->Size()),
+			new WordEmbedding(option_, huffman_encoder_,
+			sampler_, dictionary_->Size()) };
+
+			//Step 1, Create Multiverso ParameterLoader and Trainers, 
+			//Start Multiverso environment
+			WordEmbeddings[1]->MallocMemory();
+			Trainer *trainer_ptr = new (std::nothrow)Trainer(0, option_,
+				barrier, dictionary_, WordEmbeddings[1], memory_mamanger);
+
             std::queue<DataBlock*>datablock_queue;
             int data_block_count = 0;
             int64 file_size = GetFileSize(option_->train_file);
             multiverso::Log::Info("train-file-size:%lld, data_block_size:%lld\n",
                 file_size, option_->data_block_size);
             start_ = clock();
-            multiverso::Multiverso::BeginTrain();
+           // multiverso::Multiverso::BeginTrain();
             for (int cur_epoch = 0; cur_epoch < option_->epoch; ++cur_epoch)
             {
                 reader_->ResetStart();
-                multiverso::Multiverso::BeginClock();
+//multiverso::Multiverso::BeginClock();
                 for (int64 cur = 0; cur < file_size; cur += option_->data_block_size)   
                 {
                     ++data_block_count;
@@ -265,16 +283,17 @@ namespace multiverso
                     LoadData(data_block, reader_, option_->data_block_size);
                     multiverso::Log::Info("LoadOneDataBlockTime:%lfs\n",
                         (clock() - start) / (double)CLOCKS_PER_SEC);
-                    PushDataBlock(datablock_queue, data_block);
-
+                    //PushDataBlock(datablock_queue, data_block);
+					trainer_ptr->TrainIteration(data_block);
+					delete data_block;
                 }
-                multiverso::Multiverso::EndClock();
+                //multiverso::Multiverso::EndClock();
             }
 
             multiverso::Log::Info("Rank %d Pushed %d datablocks\n",
                 process_id_, data_block_count);
 
-            multiverso::Multiverso::EndTrain();
+            //multiverso::Multiverso::EndTrain();
 
             //After EndTrain, all the datablock are done,
             //we remove all the datablocks

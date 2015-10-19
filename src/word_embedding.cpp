@@ -83,8 +83,6 @@ namespace multiverso
 				return;
 
 			int feat[kMaxSentenceLength + 1];
-			std::vector<int> input_nodes;
-			std::vector<std::pair<int, int> > output_nodes;
 			for (int sentence_position = 0; sentence_position < sentence_length; ++sentence_position)
 			{
 				if (sentence[sentence_position] == -1) continue;
@@ -101,8 +99,6 @@ namespace multiverso
 					feat[feat_size++] = sentence[c];
 					if (!option_->cbow) //train Skip-gram
 					{
-						input_nodes.clear();
-						output_nodes.clear();
 						TrainParse(feat + feat_size - 1, 1, sentence[sentence_position],
 							next_random, hidden_act, hidden_err);
 					}
@@ -110,8 +106,6 @@ namespace multiverso
 
 				if (option_->cbow) 	//train cbow
 				{
-					input_nodes.clear();
-					output_nodes.clear();
 					TrainParse(feat, feat_size, sentence[sentence_position],
 						next_random, hidden_act, hidden_err);
 				}
@@ -165,7 +159,7 @@ namespace multiverso
 				}
 			}
 
-			if (option_->use_adagrad)
+			/*if (option_->use_adagrad)
 			{
 				//Update context embedding
 				for (int i = 0; i < feat_cnt; ++i)
@@ -182,7 +176,7 @@ namespace multiverso
 					}
 				}
 			}
-			else
+			else*/
 			{
 				for (int j = 0; j < option_->embeding_size; ++j)
 					hidden_err[j] *= learning_rate;

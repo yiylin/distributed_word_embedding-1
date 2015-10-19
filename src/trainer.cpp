@@ -48,44 +48,8 @@ namespace multiverso
             //Compute the total number of processes
             if (process_count_ == -1)
                 process_count_ = multiverso::Multiverso::TotalProcessCount();
-            //Get the input_nodes and output_nodes from data_block
-            //The input_nodes and output_nodes are stored by ParameterLoader
-            DataBlock *data = reinterpret_cast<DataBlock*>(data_block);
-            std::vector<int>& input_nodes = data->input_nodes;
-            std::vector<int>& output_nodes = data->output_nodes;
-            //A trainer only copy or add apart of parameters
-            //This trainer should copy or add the parameters according to
-            //local_input_nodes and local_output_nodes 
-            std::vector<int> local_input_nodes;
-            std::vector<int> local_output_nodes;
-            for (int i = trainer_id_; i < input_nodes.size(); i += option_->thread_cnt)
-                local_input_nodes.push_back(input_nodes[i]);
-            for (int i = trainer_id_; i < output_nodes.size(); i += option_->thread_cnt)
-                local_output_nodes.push_back(output_nodes[i]);
-
-            if (trainer_id_ == 0)
-            {
-                multiverso::Log::Info("Rank %d input_size=%d, output_size=%d\n",
-                    process_id_, input_nodes.size(), output_nodes.size());
-            }
-
-            //Step 1, Copy the parameter from multiverso to WordEmbedding_
-            //One trainer only copy a part of parameters
-            multiverso::Log::Debug("Rank %d Train %d Copyparameter Begin TrainIteration%d ...\n",
-                process_id_, trainer_id_, train_count_);
-			
-            //CopyParameter(local_input_nodes, local_output_nodes);
-            if (trainer_id_ == 0)
-            {
-                multiverso::Row<int64> &copy_row = GetRow<int64>(kWordCountActualTableId, 0);
-                WordEmbedding_->word_count_actual = copy_row.At(0);
-                WordEmbedding_->UpdateLearningRate();
-            }
-            multiverso::Log::Debug("Rank %d Train %d Copyparameter end TrainIteration%d ...\n",
-                process_id_, trainer_id_, train_count_);
-            //Wait for all the trainers to finish copying parameter
-            barrier_->Wait();
-		
+        
+			DataBlock *data = static_cast<DataBlock*>(data_block);
             //Step 2, After finishing copying parameter,
             //Use WordEmbedding_ to train a part of data_block
             int64 last_word_count = word_count;
@@ -99,28 +63,6 @@ namespace multiverso
                 multiverso::Log::Info("TrainNNSpeed: Words/thread/second %lfk\n",
                     ((double)word_count - last_word_count) / 
                     (clock() - start) * (double)CLOCKS_PER_SEC / 1000);
-            }
-            multiverso::Log::Debug("Rank %d Train %d TrainNN end TrainIteration%d ...\n",
-                process_id_, trainer_id_, train_count_);
-            //Wait for all the trainers to finish training
-            barrier_->Wait();
-            multiverso::Log::Debug("Rank %d Train %d AddDeltaParameter Begin TrainIteration%d ...\n",
-                process_id_, trainer_id_, train_count_);
-            //Step 3, After finishing training, add the delta of parameters to multiverso
-            //AddDeltaParameter(local_input_nodes, local_output_nodes);
-            if (trainer_id_ == 0)
-            {
-                multiverso::Row<int64> &copy_row = GetRow<int64>(kWordCountActualTableId, 0);
-                Add<int64>(kWordCountActualTableId, 0, 0, WordEmbedding_->word_count_actual - copy_row.At(0));
-            }
-            multiverso::Log::Debug("Rank %d Train %d AddDeltaParameter end TrainIteration%d ...\n",
-                process_id_, trainer_id_, train_count_);
-           
-            if (trainer_id_ == 0)
-            {
-                fprintf(log_file_, "%lf\n",
-                    (clock()) / (double)CLOCKS_PER_SEC);
-                fflush(log_file_);
             }
         }
 
