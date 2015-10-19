@@ -81,8 +81,8 @@ namespace multiverso
             Sampler *sampler_;
             std::unordered_set<int> input_nodes_, output_nodes_;
             int dictionary_size_;
-            real** weight_IE_;
-            real** weight_EO_;
+			real weight_IE_[218316][300];
+			real weight_EO_[218316][300];
             real** sum_gradient2_IE_;
             real** sum_gradient2_EO_;
 

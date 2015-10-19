@@ -74,7 +74,7 @@ namespace multiverso
             multiverso::Log::Debug("Rank %d Train %d Copyparameter Begin TrainIteration%d ...\n",
                 process_id_, trainer_id_, train_count_);
 			
-            CopyParameter(local_input_nodes, local_output_nodes);
+            //CopyParameter(local_input_nodes, local_output_nodes);
             if (trainer_id_ == 0)
             {
                 multiverso::Row<int64> &copy_row = GetRow<int64>(kWordCountActualTableId, 0);
@@ -107,7 +107,7 @@ namespace multiverso
             multiverso::Log::Debug("Rank %d Train %d AddDeltaParameter Begin TrainIteration%d ...\n",
                 process_id_, trainer_id_, train_count_);
             //Step 3, After finishing training, add the delta of parameters to multiverso
-            AddDeltaParameter(local_input_nodes, local_output_nodes);
+            //AddDeltaParameter(local_input_nodes, local_output_nodes);
             if (trainer_id_ == 0)
             {
                 multiverso::Row<int64> &copy_row = GetRow<int64>(kWordCountActualTableId, 0);

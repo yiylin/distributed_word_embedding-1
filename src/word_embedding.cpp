@@ -13,16 +13,16 @@ namespace multiverso
             sampler_ = sampler;
             dictionary_size_ = dictionary_size;
             learning_rate = option_->init_learning_rate;
-            weight_IE_ = nullptr;
-            weight_EO_ = nullptr;
+          //  weight_IE_ = nullptr;
+          //  weight_EO_ = nullptr;
             sum_gradient2_IE_ = nullptr;
             sum_gradient2_EO_ = nullptr;
         }
 
         WordEmbedding::~WordEmbedding()
         {
-            delete [] weight_IE_;
-            delete [] weight_EO_;
+          //  delete [] weight_IE_;
+          //  delete [] weight_EO_;
 
             if (option_->use_adagrad)
             {
@@ -33,14 +33,14 @@ namespace multiverso
         //Allocate the memory for some private pointers
         void WordEmbedding::MallocMemory()
         {
-            weight_IE_ = new (std::nothrow)real*[dictionary_size_];
-            assert(weight_IE_ != nullptr);
-            weight_EO_ = new (std::nothrow)real*[dictionary_size_];
-            assert(weight_EO_ != nullptr);
+           // weight_IE_ = new (std::nothrow)real*[(long long)dictionary_size_ * option_->embeding_size];
+           // assert(weight_IE_ != nullptr);
+		//	weight_EO_ = new (std::nothrow)real*[(long long)dictionary_size_ * option_->embeding_size];
+          //  assert(weight_EO_ != nullptr);
             if (option_->use_adagrad)
             {
-                sum_gradient2_IE_ = new (std::nothrow)real*[dictionary_size_];
-                sum_gradient2_EO_ = new (std::nothrow)real*[dictionary_size_];
+				sum_gradient2_IE_ = new (std::nothrow)real*[(long long)dictionary_size_ * option_->embeding_size];
+                sum_gradient2_EO_ = new (std::nothrow)real*[(long long)dictionary_size_ * option_->embeding_size];
                 assert(sum_gradient2_IE_ != nullptr);
                 assert(sum_gradient2_EO_ != nullptr);
             }
@@ -426,13 +426,13 @@ namespace multiverso
         //Set the weight of input-embedding vector
         void WordEmbedding::SetWeightIE(int input_node_id, real* ptr)
         {
-            weight_IE_[input_node_id] = ptr;
+            //weight_IE_[input_node_id] = ptr;
         }
 
         //Set the weight of output-embedding vector
         void WordEmbedding::SetWeightEO(int output_node_id, real* ptr)
         {
-            weight_EO_[output_node_id] = ptr;
+            //weight_EO_[output_node_id] = ptr;
         }
         //Get the weight of output-embedding vector
         real* WordEmbedding::GetWeightIE(int input_node_id)
