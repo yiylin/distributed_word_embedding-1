@@ -5,6 +5,8 @@
 * \brief Class DataBlock is to store the necessary data for trainer and param_loader
 */
 
+#define NDEBUG
+
 #include "util.h"
 #include "multiverso.h"
 #include "huffman_encoder.h"

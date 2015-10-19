@@ -5,6 +5,8 @@
 * \brief Class Distributed_wordembedding describles the main frame of Distributed WordEmbedding and some useful functions 
 */
 
+#define NDEBUG
+
 #include <vector>
 #include <ctime>
 #include <stdlib.h>

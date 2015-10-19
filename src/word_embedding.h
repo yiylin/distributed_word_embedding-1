@@ -5,6 +5,8 @@
 * \brief Class WordEmbedding includes some functions and parameters about TrainNN 
 */
 
+#define NDEBUG
+
 #include <vector>
 #include <cstring>
 #include "util.h"
@@ -93,6 +95,7 @@ namespace multiverso
             void Parse(int *feat, int feat_cnt, int word_idx, uint64 &next_random,
                 std::vector<int>& input_nodes,
                 std::vector<std::pair<int, int> >& output_nodes);
+			void TrainParse(int *feat, int feat_cnt, int word_idx, uint64 &next_random, real *hidden_act, real *hidden_err);
             /*!
             * \brief Parse a sentence and deepen into two branchs
             * \one for TrainNN,the other one is for Parameter_parse&request
@@ -107,6 +110,7 @@ namespace multiverso
             * \param hidden_act store the hidden layer vector
             */
             void FeedForward(std::vector<int>& input_nodes, real* hidden_act);
+			void FeedForward(int* feat, int feat_cnt, real* hidden_act);
             /*!
             * \brief Calculate the hidden_err and update the output-embedding weight
             * \param label record the label of every output-embedding vector

@@ -5,6 +5,8 @@
 * \brief Class Trainer trains the model by every trainiteration
 */
 
+#define NDEBUG
+
 #include <thread>
 #include <chrono>
 

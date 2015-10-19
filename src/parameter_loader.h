@@ -5,6 +5,8 @@
 * \brief Class Parameterloader parses the datablock and requests the params from multiverso server
 */
 
+#define NDEBUG
+
 #include "multiverso.h"
 #include "data_block.h"
 #include "constant.h"

@@ -79,9 +79,125 @@ namespace multiverso
         void WordEmbedding::Train(int* sentence, int sentence_length,
             uint64 next_random, real* hidden_act, real* hidden_err)
         {
-            ParseSentence(sentence, sentence_length,
-                next_random, hidden_act, hidden_err, &WordEmbedding::TrainSample);
+			if (sentence_length == 0)
+				return;
+
+			int feat[kMaxSentenceLength + 1];
+			std::vector<int> input_nodes;
+			std::vector<std::pair<int, int> > output_nodes;
+			for (int sentence_position = 0; sentence_position < sentence_length; ++sentence_position)
+			{
+				if (sentence[sentence_position] == -1) continue;
+				next_random = sampler_->GetNextRandom(next_random);
+				int off = next_random % option_->window_size;
+				int feat_size = 0;
+				for (int i = off; i < option_->window_size * 2 + 1 - off; ++i)
+				if (i != option_->window_size)
+				{
+					int c = sentence_position - option_->window_size + i;
+					if (c < 0 || c >= sentence_length || sentence[c] == -1)
+						continue;
+
+					feat[feat_size++] = sentence[c];
+					if (!option_->cbow) //train Skip-gram
+					{
+						input_nodes.clear();
+						output_nodes.clear();
+						TrainParse(feat + feat_size - 1, 1, sentence[sentence_position],
+							next_random, hidden_act, hidden_err);
+					}
+				}
+
+				if (option_->cbow) 	//train cbow
+				{
+					input_nodes.clear();
+					output_nodes.clear();
+					TrainParse(feat, feat_size, sentence[sentence_position],
+						next_random, hidden_act, hidden_err);
+				}
+			}
         }
+
+		void WordEmbedding::FeedForward(int* feat, int feat_cnt, real* hidden_act)
+		{
+			for (int i = 0; i < feat_cnt; ++i)
+			{
+				real* input_embedding = weight_IE_[feat[i]];
+				for (int j = 0; j < option_->embeding_size; ++j)
+					hidden_act[j] += input_embedding[j];
+			}
+
+			//Change2 .............................................
+			if (feat_cnt > 1)
+			{
+				for (int j = 0; j < option_->embeding_size; ++j)
+					hidden_act[j] /= feat_cnt;
+			}
+		}
+
+		void WordEmbedding::TrainParse(int *feat, int feat_cnt, int word_idx, uint64 &next_random, real *hidden_act, real *hidden_err)
+		{
+			assert(hidden_act != nullptr);
+			assert(hidden_err != nullptr);
+			memset(hidden_act, 0, option_->embeding_size * sizeof(real));
+			memset(hidden_err, 0, option_->embeding_size * sizeof(real));
+			FeedForward(feat, feat_cnt, hidden_act);
+
+			if (option_->hs)
+			{
+				auto info = huffmanEncoder_->GetLabelInfo(word_idx);
+				for (int d = 0; d < info->codelen; d++)
+					BPOutputLayer(info->code[d], info->point[d], weight_EO_[info->point[d]],
+					hidden_act, hidden_err);
+			}
+			else
+			if (option_->negative_num)
+			{
+				BPOutputLayer(1, word_idx, weight_EO_[word_idx],
+					hidden_act, hidden_err);
+				for (int d = 0; d < option_->negative_num; d++)
+				{
+					next_random = sampler_->GetNextRandom(next_random);
+					int target = sampler_->NegativeSampling(next_random);
+					if (target == word_idx) continue;
+					BPOutputLayer(0, target, weight_EO_[target],
+						hidden_act, hidden_err);
+				}
+			}
+
+			if (option_->use_adagrad)
+			{
+				//Update context embedding
+				for (int i = 0; i < feat_cnt; ++i)
+				{
+					int &node_id = feat[i];
+					real* input_embedding_row = weight_IE_[node_id];
+					real* sum_gradient2_row = sum_gradient2_IE_[node_id];
+					assert(input_embedding_row != nullptr && sum_gradient2_row != nullptr);
+					for (int j = 0; j < option_->embeding_size; ++j)
+					{
+						sum_gradient2_row[j] += hidden_err[j] * hidden_err[j];
+						if (sum_gradient2_row[j] > 1e-10)
+							input_embedding_row[j] += hidden_err[j] * option_->init_learning_rate / sqrt(sum_gradient2_row[j]);
+					}
+				}
+			}
+			else
+			{
+				for (int j = 0; j < option_->embeding_size; ++j)
+					hidden_err[j] *= learning_rate;
+				//Update context embedding
+				for (int i = 0; i < feat_cnt; ++i)
+				{
+					int &node_id = feat[i];
+					real* input_embedding = weight_IE_[node_id];
+					assert(input_embedding != nullptr);
+					for (int j = 0; j < option_->embeding_size; ++j)
+						input_embedding[j] += hidden_err[j];
+				}
+			}
+		}
+
         //Train with forward direction and get  the input-hidden layer vector
         void WordEmbedding::FeedForward(std::vector<int>& input_nodes, real* hidden_act)
         {

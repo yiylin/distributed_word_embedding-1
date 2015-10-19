@@ -5,6 +5,8 @@
 * \brief Class MemoryManager creates and allocates memory for the local parameter which is needed by the datablock training.
 */
 
+#define NDEBUG
+
 #include <vector>
 #include <condition_variable>
 #include <cassert>

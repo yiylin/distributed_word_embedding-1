@@ -4,6 +4,8 @@
 * \brief Class Huffman_encoder stores the huffman_encode of the vocabulary according the dictionary
 */
 
+#define NDEBUG
+
 #include <algorithm>
 #include <cassert>
 #include <cstring>

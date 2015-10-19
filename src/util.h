@@ -4,6 +4,7 @@
 * file util.h
 * \brief Struct Option stores many general arguments in model
 */
+#define NDEBUG
 
 #include <cstring>
 #include <cstdlib>

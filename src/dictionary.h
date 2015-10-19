@@ -4,6 +4,8 @@
 * \brief Class dictionary stores the vocabulary and it's frequency
 */
 
+#define NDEBUG
+
 #include <unordered_map>
 #include <unordered_set>
 #include <string>

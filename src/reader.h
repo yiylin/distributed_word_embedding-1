@@ -5,6 +5,8 @@
 * \brief Class Reader helps the function Loaddata to fill the datablock
 */
 
+#define NDEBUG
+
 #include <mutex>
 #include <unordered_set>
 
