@@ -9,6 +9,7 @@
 
 #include <vector>
 #include <cstring>
+#include "reader.h"
 #include "util.h"
 #include "multiverso.h"
 #include "huffman_encoder.h"
@@ -19,6 +20,7 @@ namespace multiverso
 {
     namespace wordembedding
     {
+		class Reader;
         class WordEmbedding
         {
         public:
@@ -43,36 +45,19 @@ namespace multiverso
             */
             void Train(DataBlock *data_block, int index_start,
                 int interval, int64& word_count,
-                real* hidden_act, real* hidden_err);
+                real* hidden_act, real* hidden_err, Reader* reader);
             /*!
             * \brief PrepareParameter for parameterloader threat
             * \param data_block datablock for parameterloader to parse
             * \param input_nodes  input_nodes represent the parameter which input_layer includes 
             * \param output_nodes output_nodes represent the parameter which output_layer inclueds
-            */
-            void PrepareParameter(DataBlock *data_block,
-                std::vector<int>& input_nodes, std::vector<int>& output_nodes);
+  
             /*!
             * \brief Update the learning rate
             */
             void UpdateLearningRate();
-            /*!
-            * \brief Set the input(output)-embeddding weight
-            */
-            void SetWeightIE(int input_node_id, real* ptr);
-            void SetWeightEO(int output_node_id, real* ptr);
-            /*!
-            * \brief Set the SumGradient-input(ouput) 
-            */
-            void SetSumGradient2IE(int input_node_id, real* ptr);
-            void SetSumGradient2EO(int output_node_id, real* ptr);
-            /*!
-            * \brief Return the parametertable value
-            */
-            real* GetWeightIE(int input_node_id);
-            real* GetWeightEO(int output_node_id);
-            real* GetSumGradient2IE(int input_node_id);
-            real* GetSumGradient2EO(int output_node_id);
+           
+        
 
         private:    
             Option *option_;
@@ -81,36 +66,29 @@ namespace multiverso
             Sampler *sampler_;
             std::unordered_set<int> input_nodes_, output_nodes_;
             int dictionary_size_;
-			real weight_IE_[218316][300];
-			real weight_EO_[218316][300];
-            real** sum_gradient2_IE_;
-            real** sum_gradient2_EO_;
+			real *weight_IE_;
+			real *weight_EO_;
+            real*sum_gradient2_IE_;
+            real* sum_gradient2_EO_;
 			int feat[kMaxSentenceLength + 1];
 
-            typedef void(WordEmbedding::*FunctionType)(std::vector<int>& input_nodes,
-                std::vector<std::pair<int, int> >& output_nodes,
-                void *hidden_act, void *hidden_err);
+          
             /*!
             * \brief Parse the needed parameter in a window
             */
-            void Parse(int *feat, int feat_cnt, int word_idx, uint64 &next_random,
-                std::vector<int>& input_nodes,
-                std::vector<std::pair<int, int> >& output_nodes);
-			void TrainParse(int *feat, int feat_cnt, int word_idx, uint64 &next_random, real *hidden_act, real *hidden_err);
+			inline void WordEmbedding::FeedForward(int* feat, int feat_cnt, real* hidden_act);
+        
+			void TrainParse(int *feat, int feat_cnt, int word_idx, real *hidden_act, real *hidden_err);
             /*!
             * \brief Parse a sentence and deepen into two branchs
             * \one for TrainNN,the other one is for Parameter_parse&request
             */
-            void ParseSentence(int* sentence, int sentence_length,
-                uint64 next_random,
-                real* hidden_act, real* hidden_err,
-                FunctionType function);
+
             /*!
             * \brief Get the hidden layer vector
             * \param input_nodes represent the input nodes
             * \param hidden_act store the hidden layer vector
-            */
-            void FeedForward(std::vector<int>& input_nodes, real* hidden_act);
+
 			void FeedForward(int* feat, int feat_cnt, real* hidden_act);
             /*!
             * \brief Calculate the hidden_err and update the output-embedding weight
@@ -121,14 +99,12 @@ namespace multiverso
             * \param store the hidden-error which is used 
             * \to update the input-embedding vector
             */
-            void BPOutputLayer(int label, int word_idx, real* classifier,
+            void BPOutputLayer(int label, real* classifier,
                 real* hidden_act, real* hidden_err);
             /*!
             * \brief Copy the input_nodes&output_nodes to WordEmbedding private set
             */
-            void DealPrepareParameter(std::vector<int>& input_nodes,
-                std::vector<std::pair<int, int> >& output_nodes,
-                void *hidden_act, void *hidden_err);
+           
             /*!
             * \brief Train a window sample and update the 
             * \input-embedding&output-embedding vectors 
@@ -137,9 +113,7 @@ namespace multiverso
             * \param hidden_act  store the hidden layer vector
             * \param hidden_err  store the hidden layer error
             */
-            void TrainSample(std::vector<int>& input_nodes,
-                std::vector<std::pair<int, int> >& output_nodes,
-                void *hidden_act, void *hidden_err);
+      
             /*!
             * \brief Train the sentence actually
             */

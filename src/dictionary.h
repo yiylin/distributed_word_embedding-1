@@ -6,8 +6,8 @@
 
 #define NDEBUG
 
-#include <unordered_map>
-#include <unordered_set>
+#include <concurrent_unordered_map.h>
+#include <concurrent_unordered_set.h>
 #include <string>
 #include <vector>
 
@@ -89,8 +89,8 @@ namespace multiverso
             int combine_;
             std::vector<WordInfo> word_info_;
             std::vector<WordInfo>::iterator word_iterator_;
-            std::unordered_map<std::string, int> word_idx_map_;
-            std::unordered_set<std::string> word_whitelist_;
+			Concurrency::concurrent_unordered_map<std::string, int> word_idx_map_;
+			Concurrency::concurrent_unordered_set<std::string> word_whitelist_;
         };
     }
 }

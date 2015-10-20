@@ -74,10 +74,10 @@ namespace multiverso
         {
             int idx = 0;
             char ch;
-            while (!feof(fin) && byte_count_ < byte_size_)
+            while (!feof(fin))
             {
                 ch = fgetc(fin);
-                ++byte_count_;
+                //++byte_count_;
                 if (ch == 13) continue;
                 if ((ch == ' ') || (ch == '\t') || (ch == '\n'))
                 {

@@ -38,7 +38,7 @@ namespace multiverso
             //input_nodes,output_nodes
             multiverso::Log::Debug("Rank %d ParameterLoader parse begin %d\n",
                 multiverso::Multiverso::ProcessRank(), parse_and_request_count_);
-            WordEmbedding_->PrepareParameter(data, input_nodes, output_nodes);
+            //WordEmbedding_->PrepareParameter(data, input_nodes, output_nodes);
             multiverso::Log::Debug("Rank %d ParameterLoader parse end %d\n",
                 multiverso::Multiverso::ProcessRank(), parse_and_request_count_);
             //Step 2, Request the parameter

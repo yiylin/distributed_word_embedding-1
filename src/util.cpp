@@ -132,54 +132,11 @@ namespace multiverso
             multiverso::Log::Info("endpoints_file: %s\n", endpoints_file);
         }
 
-        Sampler::Sampler()
-        {
-            table_ = nullptr;
-        }
-        //Set the negative-sampling distribution
-        void Sampler::SetNegativeSamplingDistribution(Dictionary *dictionary)
-        {
-            real train_words_pow = 0;
-            real power = 0.75;
-            table_ = (int *)malloc(kTableSize * sizeof(int));
-            for (int i = 0; i < dictionary->Size(); ++i)
-                train_words_pow += static_cast<real>(pow(dictionary->GetWordInfo(i)->freq, power));
-            int cur_pos = 0;
-            real d1 = (real)pow(dictionary->GetWordInfo(cur_pos)->freq, power) 
-                / (real)train_words_pow;
-
-            assert(table_ != nullptr);
-            for (int i = 0; i < kTableSize; ++i)
-            {
-                table_[i] = cur_pos;
-                if (i > d1 * kTableSize && cur_pos + 1 < dictionary->Size())
-                {
-                    cur_pos++;
-                    d1 += (real)pow(dictionary->GetWordInfo(cur_pos)->freq, power) 
-                    / (real)train_words_pow;
-                }
-            }
-        }
-
-        bool Sampler::WordSampling(int64 word_cnt, 
-            int64 train_words, real sample)
-        {
-            real ran = (sqrt(word_cnt / (sample * train_words)) + 1) * 
-                (sample * train_words) / word_cnt;
-            return (ran > ((real)rand() / (RAND_MAX)));
-        }
-        //Get the next random 
-        uint64 Sampler::GetNextRandom(uint64 next_random)
-        {
-            return next_random * (uint64)25214903917 + 11;
-        }
-
-        int Sampler::NegativeSampling(uint64 next_random)
-        {
-            return table_[(next_random >> 16) % kTableSize];
-        }
-
-        std::string GetSystemTime()
+		int* Sampler::table_ = NULL;
+		std::default_random_engine Sampler::generator;
+		std::uniform_int_distribution<int> Sampler::int_distribution(0, kTableSize - 1);
+        
+		std::string GetSystemTime()
         {
             time_t t = time(0);
             char tmp[128];

@@ -6,8 +6,9 @@ namespace multiverso
         Trainer::Trainer(int trainer_id, Option *option,
             multiverso::Barrier *barrier,
             Dictionary* dictionary, WordEmbedding* WordEmbedding,
-            MemoryManager* memory_mamanger)
+            MemoryManager* memory_mamanger, Reader* reader)
         {
+			reader_ = reader;
             trainer_id_ = trainer_id;
             option_ = option;   
             word_count = 0;
@@ -57,7 +58,7 @@ namespace multiverso
             multiverso::Log::Debug("Rank %d Train %d TrainNN Begin TrainIteration%d ...\n",
                 process_id_, trainer_id_, train_count_);
             WordEmbedding_->Train(data, trainer_id_, option_->thread_cnt,
-                word_count, hidden_act_, hidden_err_);
+                word_count, hidden_act_, hidden_err_, reader_);
             if (word_count > last_word_count)
             {
                 multiverso::Log::Info("TrainNNSpeed: Words/thread/second %lfk\n",
@@ -101,7 +102,7 @@ namespace multiverso
                 CopyRow(ptr, GetRow<real>(kInputEmbeddingTableId,
                     input_nodes[i]), option_->embeding_size);
 
-                WordEmbedding_->SetWeightIE(input_nodes[i], ptr);
+                //WordEmbedding_->SetWeightIE(input_nodes[i], ptr);
             }
 
             //Copy embedding-output weights from multiverso to WordEmbedding
@@ -112,7 +113,7 @@ namespace multiverso
                 CopyRow(ptr, GetRow<real>(kEmbeddingOutputTableId,
                     output_nodes[i]), option_->embeding_size);
 
-                WordEmbedding_->SetWeightEO(output_nodes[i], ptr);
+                //WordEmbedding_->SetWeightEO(output_nodes[i], ptr);
             }
 
             if (option_->use_adagrad)
@@ -125,7 +126,7 @@ namespace multiverso
                     CopyRow(ptr, GetRow<real>(kSumGradient2IETableId,
                         input_nodes[i]), option_->embeding_size);
 
-                    WordEmbedding_->SetSumGradient2IE(input_nodes[i], ptr);
+                    //WordEmbedding_->SetSumGradient2IE(input_nodes[i], ptr);
                 }
 
                 //Copy embedding-output sum of squarsh of gradient 
@@ -136,7 +137,7 @@ namespace multiverso
                     CopyRow(ptr, GetRow<real>(kSumGradient2EOTableId,
                         output_nodes[i]), option_->embeding_size);
 
-                    WordEmbedding_->SetSumGradient2EO(output_nodes[i], ptr);
+                    //WordEmbedding_->SetSumGradient2EO(output_nodes[i], ptr);
                 }
             }
         }
@@ -160,7 +161,7 @@ namespace multiverso
             std::vector<real*> blocks;
             for (int i = 0; i < input_nodes.size(); ++i)
             {
-                real* ptr = WordEmbedding_->GetWeightIE(input_nodes[i]);
+				real* ptr = nullptr;// WordEmbedding_->GetWeightIE(input_nodes[i]);
                 assert(ptr != nullptr);
                 AddRow(ptr, kInputEmbeddingTableId, input_nodes[i],
                     option_->embeding_size);
@@ -170,7 +171,7 @@ namespace multiverso
 
             for (int i = 0; i < output_nodes.size(); ++i)
             {
-                real* ptr = WordEmbedding_->GetWeightEO(output_nodes[i]);
+				real* ptr = nullptr;// WordEmbedding_->GetWeightEO(output_nodes[i]);
                 assert(ptr != nullptr);
                 AddRow(ptr, kEmbeddingOutputTableId, output_nodes[i],
                     option_->embeding_size);
@@ -181,7 +182,7 @@ namespace multiverso
             {
                 for (int i = 0; i < input_nodes.size(); ++i)
                 {
-                    real* ptr = WordEmbedding_->GetSumGradient2IE(input_nodes[i]);
+					real* ptr = nullptr;// WordEmbedding_->GetSumGradient2IE(input_nodes[i]);
                     assert(ptr != nullptr);
                     AddRow(ptr, kSumGradient2IETableId, input_nodes[i],
                         option_->embeding_size);
@@ -190,7 +191,7 @@ namespace multiverso
 
                 for (int i = 0; i < output_nodes.size(); ++i)
                 {
-                    real* ptr = WordEmbedding_->GetSumGradient2EO(output_nodes[i]);
+					real* ptr = nullptr;// WordEmbedding_->GetSumGradient2EO(output_nodes[i]);
                     assert(ptr != nullptr);
                     AddRow(ptr, kSumGradient2EOTableId, output_nodes[i],
                         option_->embeding_size);

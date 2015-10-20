@@ -41,7 +41,7 @@ namespace multiverso
                 if (word_info.freq >= threshold || word_info.freq == 0
                     || word_whitelist_.count(word_info.word))
                 {
-                    word_idx_map_[word_info.word] = static_cast<int>(tmp_info.size());
+                    word_idx_map_[word_info.word] = (tmp_info.size());
                     tmp_info.push_back(word_info);
                 }
                 else 
@@ -51,8 +51,8 @@ namespace multiverso
                         WordInfo infreq_word_info;
                         infreq_word_info.word = "WE_ARE_THE_INFREQUENT_WORDS";
                         infreq_word_info.freq = 0;
-                        word_idx_map_[infreq_word_info.word] = static_cast<int>(tmp_info.size());
-                        infreq_idx = static_cast<int>(tmp_info.size());
+                        word_idx_map_[infreq_word_info.word] = (tmp_info.size());
+                        infreq_idx = (tmp_info.size());
                         tmp_info.push_back(infreq_word_info);
                     }
                     word_idx_map_[word_info.word] = infreq_idx;
@@ -72,7 +72,7 @@ namespace multiverso
                 if (info.freq >= min_count || info.freq == 0 
                     || word_whitelist_.count(info.word))
                 {
-                    word_idx_map_[info.word] = static_cast<int>(tmp_info.size());
+                    word_idx_map_[info.word] = (tmp_info.size());
                     tmp_info.push_back(info);
                 }
             }
@@ -86,7 +86,7 @@ namespace multiverso
                 word_info_[it->second].freq += cnt;
             else
             {
-                word_idx_map_[word] = static_cast<int>(word_info_.size());
+                word_idx_map_[word] = (word_info_.size());
                 word_info_.push_back(WordInfo(word, cnt));
             }
         }
@@ -179,7 +179,7 @@ namespace multiverso
         //Return the size of frequency
         int Dictionary::Size()
         {
-            return static_cast<int>(word_info_.size());
+            return (word_info_.size());
         }
         //Get the wordinfo from word or index
         const WordInfo* Dictionary::GetWordInfo(const char* word)

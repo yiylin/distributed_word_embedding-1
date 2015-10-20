@@ -51,28 +51,66 @@ namespace multiverso
         class Sampler
         {
         public:
-            Sampler();
+           
             /*!
             * \brief Set the negative-sampling distribution for every vocabulary
             * \param dictionary the train_file dictionary
             */
-            void SetNegativeSamplingDistribution(Dictionary *dictionary);
-            bool WordSampling(int64 word_cnt, int64 train_words, real sample);
-            /*!
-            * \brief Get the next random according to the existing random seed
-            */
-            uint64 GetNextRandom(uint64 next_random);
-            int NegativeSampling(uint64 next_random);
+			//Set the negative-sampling distribution
+			static void Sampler::SetNegativeSamplingDistribution(Dictionary *dictionary)
+			{
+				real train_words_pow = 0;
+				real power = 0.75;
+				table_ = (int *)malloc(kTableSize * sizeof(int));
+				for (int i = 0; i < dictionary->Size(); ++i)
+					train_words_pow += static_cast<real>(pow(dictionary->GetWordInfo(i)->freq, power));
+				int cur_pos = 0;
+				real d1 = (real)pow(dictionary->GetWordInfo(cur_pos)->freq, power)
+					/ (real)train_words_pow;
+
+				assert(table_ != nullptr);
+				for (int i = 0; i < kTableSize; ++i)
+				{
+					table_[i] = cur_pos;
+					if (i > d1 * kTableSize && cur_pos + 1 < dictionary->Size())
+					{
+						cur_pos++;
+						d1 += (real)pow(dictionary->GetWordInfo(cur_pos)->freq, power)
+							/ (real)train_words_pow;
+					}
+				}
+			}
+
+			static bool Sampler::WordSampling(int64 word_cnt,
+				int64 train_words, real sample)
+			{
+				real ran = (sqrt(word_cnt / (sample * train_words)) + 1) *
+					(sample * train_words) / word_cnt;
+				return (ran > ((real)rand() / (RAND_MAX)));
+			}
+			//Get the next random 
+			static uint64 Sampler::GetNextRandom(uint64 next_random)
+			{
+				return next_random * (uint64)25214903917 + 11;
+			}
+
+			static int Sampler::NegativeSampling()
+			{
+				return table_[(int_distribution)(generator)];
+			}
+
 
         private:
-            int* table_;
+            static int* table_;
+		    static std::default_random_engine generator;
+			static std::uniform_int_distribution<int> int_distribution;
 
             //No copying allowed
             Sampler(const Sampler&);
             void operator=(const Sampler&);
         };
 
-        std::string GetSystemTime();
+		std::string GetSystemTime();
         extern std::string g_log_suffix;
     }
 }

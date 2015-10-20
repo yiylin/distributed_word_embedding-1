@@ -31,7 +31,7 @@ namespace multiverso
             int64 word_count;
             Trainer(int trainer_id, Option *option, Barrier* barrier,
                 Dictionary* dictionary, WordEmbedding* WordEmbedding,
-                MemoryManager* memory_mamanger);
+                MemoryManager* memory_mamanger, Reader* reader);
             /*!
             * /brief Train one datablock
             */
@@ -41,6 +41,7 @@ namespace multiverso
             int process_count_;
             int process_id_;
             int trainer_id_;
+			Reader *reader_;
             Option *option_;
             real *hidden_act_, *hidden_err_;
             WordEmbedding* WordEmbedding_;

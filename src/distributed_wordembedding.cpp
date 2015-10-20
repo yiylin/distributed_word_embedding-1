@@ -26,7 +26,7 @@ namespace multiverso
             for (int i = 0; i < option_->thread_cnt; ++i)
             {
                 trainers.push_back(new (std::nothrow)Trainer(i, option_,
-                    barrier, dictionary_, WordEmbeddings[1], memory_mamanger));
+                    barrier, dictionary_, WordEmbeddings[1], memory_mamanger, reader_));
                 assert(trainers[i] != nullptr);
             }
 
@@ -159,6 +159,7 @@ namespace multiverso
 
             //Create tables, the order of creating tables should arise from 0 continuously
             //The elements of talbes will be initialized with 0
+			/*
             CreateMultiversoParameterTable(kInputEmbeddingTableId,
                 dictionary->Size(), opt->embeding_size,
                 multiverso::Type::Float, multiverso::Format::Dense);
@@ -192,7 +193,7 @@ namespace multiverso
                             static_cast<real>((static_cast<real>(rand())
                             / RAND_MAX - 0.5) / opt->embeding_size / proc_count));
                 }
-            }
+            }*/
 
             multiverso::Multiverso::EndConfig();
         }
@@ -260,7 +261,7 @@ namespace multiverso
 			//Start Multiverso environment
 			WordEmbeddings[1]->MallocMemory();
 			Trainer *trainer_ptr = new (std::nothrow)Trainer(0, option_,
-				barrier, dictionary_, WordEmbeddings[1], memory_mamanger);
+				barrier, dictionary_, WordEmbeddings[1], memory_mamanger, reader_);
 
             std::queue<DataBlock*>datablock_queue;
             int data_block_count = 0;
@@ -273,15 +274,15 @@ namespace multiverso
             {
                 reader_->ResetStart();
 //multiverso::Multiverso::BeginClock();
-                for (int64 cur = 0; cur < file_size; cur += option_->data_block_size)   
+                //for (int64 cur = 0; cur < file_size; cur += option_->data_block_size)   
                 {
                     ++data_block_count;
                     DataBlock *data_block = new (std::nothrow)DataBlock();
                     assert(data_block != nullptr);
                     //Load the sentences from train file, and store them in data_block
                     clock_t start = clock();
-                    LoadData(data_block, reader_, option_->data_block_size);
-                    multiverso::Log::Info("LoadOneDataBlockTime:%lfs\n",
+                    //LoadData(data_block, reader_, option_->data_block_size);
+                    multiverso::Log::Info("kkkkkk LoadOneDataBlockTime:%lfs\n",
                         (clock() - start) / (double)CLOCKS_PER_SEC);
                     //PushDataBlock(datablock_queue, data_block);
 					trainer_ptr->TrainIteration(data_block);
@@ -357,10 +358,10 @@ namespace multiverso
 
             option_->PrintArgs();
 
-            sampler_ = new (std::nothrow)Sampler();
-            assert(sampler_ != nullptr);
+            //sampler_ = new (std::nothrow)Sampler();
+            //assert(sampler_ != nullptr);
             if (option_->negative_num)
-                sampler_->SetNegativeSamplingDistribution(dictionary_);
+                Sampler::SetNegativeSamplingDistribution(dictionary_);
 
             char *filename = new (std::nothrow)char[strlen(option_->train_file) + 1];
             assert(filename != nullptr);
